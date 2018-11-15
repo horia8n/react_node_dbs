@@ -1,0 +1,30 @@
+[
+  {
+    "name": "John",
+    "title": "manager"
+  },
+  {
+    "name": "Mary",
+    "title": "director"
+  },
+  {
+    "name": "Kirk",
+    "title": "messanger"
+  },
+  {
+    "name": "Eugene",
+    "title": "doorman"
+  },
+  {
+    "name": "Anna",
+    "title": "underwriter"
+  },
+  {
+    "name": "Allen",
+    "title": "csr"
+  },
+  {
+    "name": "Dan",
+    "title": "region manager"
+  }
+]

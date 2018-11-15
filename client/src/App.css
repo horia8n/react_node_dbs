@@ -1,0 +1,173 @@
+*,
+*::after,
+*::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif
+}
+
+.cl {
+    clear: both;
+}
+
+.root {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.App {
+    text-align: left;
+    padding: 20px;
+    display: block;
+    max-width: 1080px;
+    width: 80%;
+    margin-left: 10%;
+}
+
+.SubComponent {
+    display: block;
+    vertical-align: top;
+}
+.SubComponent:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.databasePick {
+    display: inline-block;
+    float: left;
+    text-align: left;
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    color: #666;
+}
+
+.databaseChoice.selected {
+    background-color: #eee;
+    color: #555;
+    border: 1px solid #ddd;
+}
+
+.databaseChoice {
+    display: block;
+    text-align: left;
+    cursor: pointer;
+    margin-bottom: 4px;
+    padding: 6px 10px;
+    background-color: #fff;
+    color: #666;
+    border: 1px solid #fff;
+}
+
+.database {
+    display: inline-block;
+    float: left;
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.databaseTitle {
+    margin: 0 auto 10px;
+}
+
+table {
+    text-align: left;
+}
+
+table thead td {
+    border: 1px solid #ddd;
+    background-color: #eee;
+}
+
+table td {
+    min-width: 100px;
+    max-width: 1000px;
+    border: 1px solid #eee;
+    color: #888;
+    padding: 5px 5px;
+    cursor: pointer;
+    position: relative;
+    vertical-align: top;
+}
+
+table td div.viewMode {
+    display: block;
+    margin: 0;
+    font-size: 12px;
+}
+
+table td div.viewLine {
+    display: block;
+    height: 12px;
+    margin: 0;
+    font-size: 12px;
+}
+
+table td textarea.editMode {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    padding: 7px 5px 0;
+    font-size: 12px;
+    background-color: #fff;
+    color: #009e00;
+    border: 0;
+    line-height: 12px;
+}
+
+table tbody tr:nth-child(odd) td {
+    background-color: #fafafa;
+}
+
+table tbody tr:last-child td {
+    background-color: #fff;
+}
+
+table td.deleteTD {
+    min-width: 20px;
+    border: 0;
+    color: #ff0000;
+    padding: 5px 10px;
+    font-size: 18px;
+    background-color: #fff !important;
+}
+
+table td.insertTD {
+    min-width: 20px;
+    border: 0;
+    color: #ff0000;
+    padding: 0px 0px;
+    font-size: 24px;
+    font-weight: 600;
+    background-color: #fff !important;
+}
+
+table td div.buttton {
+    width: 20px;
+    height: 100%;
+    text-align: center;
+    border: 1px solid #eee;
+    color: #ff0000;
+    padding: 0px 10px;
+    font-weight: 600;
+    background-color: #fff !important;
+}
+
+table td.insertTDfirst {
+    min-width: 20px;
+    border: 0;
+    background-color: #fff !important;
+}
+
+table thead td.deleteTD {
+    cursor: default;
+}

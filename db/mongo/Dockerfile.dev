@@ -1,0 +1,5 @@
+FROM mongo:latest
+ADD /seed/ /tmp/seed/
+COPY script.sh /
+CMD ["mongod"]
+HEALTHCHECK --interval=2s --timeout=1s --retries=100 CMD sh /script.sh

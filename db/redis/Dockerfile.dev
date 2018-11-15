@@ -1,0 +1,5 @@
+FROM redis:latest
+COPY script.sh /
+CMD ["redis-server"]
+HEALTHCHECK --interval=2s --timeout=1s --retries=100 CMD redis-cli && HSET demotable id somethingfromdocker44
+#HEALTHCHECK --interval=2s --timeout=1s --retries=100 CMD sh /script.sh && exit 0
