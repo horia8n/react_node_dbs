@@ -322,364 +322,364 @@ app.delete('/postgres/knex/:id', async (req, res) => {
     res.send(await postgres_knex_Model.remove(id));
 });
 // //------------------------------------------------------------------ mongo mongoose
-// const mongoose = require('mongoose');
-// mongoose.Promise = global.Promise;
-// const mongoURI = `mongodb://${keys.mongoUser}:${keys.mongoPassword}@${keys.mongoHost}:${keys.mongoPort}/${keys.mongoDatabase}`;
-// mongoose.connect(mongoURI, {useNewUrlParser: true, authSource: 'admin'});
-// const db = mongoose.connection;
-// const mongoose_schema = {
-//     _id: {
-//         type: mongoose.Schema.Types.ObjectId
-//     },
-//     name: {
-//         type: String
-//     },
-//     title: {
-//         type: String
-//     }
-// };
-// const modelSchema = mongoose.Schema(mongoose_schema, {versionKey: false});
-// const Model = mongoose.model('Model', modelSchema, 'demotable');
-// class mongo_mongoose_Model {
-//     static async getAll() {
-//         console.log('mongo_mongoose_Model.getAll');
-//         const getAll = await Model.find({}).limit(100);
-//         console.log('getAll', getAll);
-//         return getAll;
-//     }
-//     static async getOne(id) {
-//         console.log('mongo_mongoose_Model.getOne');
-//         const getOne = await Model.findById(id);
-//         console.log('getOne', getOne);
-//         return getOne;
-//     }
-//     static async insert(row) {
-//         const jsonToInsert = {};
-//         Object.keys(mongoose_schema).forEach((element, key) => {
-//             if (key === 0) {
-//                 jsonToInsert[element] = new mongoose.mongo.ObjectId();
-//             } else {
-//                 jsonToInsert[element] = row[element] ? row[element] : null;
-//             }
-//         });
-//         await Model.create(jsonToInsert);
-//         return await this.getAll();
-//     }
-//     static async update(id, row) {
-//         console.log('mongo_mongoose_Model.update');
-//         console.log('row', row);
-//         let rowWithoutId = {};
-//         Object.keys(mongoose_schema).forEach((element) => {
-//             if (element !== '_id') {
-//                 rowWithoutId[element] = row[element];
-//             }
-//         });
-//         console.log('rowWithoutId', rowWithoutId);
-//         await Model.findOneAndUpdate({_id: id}, {$set: rowWithoutId});
-//         return await this.getAll();
-//     }
-//     static async remove(id) {
-//         await Model.deleteOne({_id: id});
-//         return await this.getAll();
-//     }
-// }
-// app.get('/mongo/mongoose', async (req, res) => {
-//     console.log('get /mongo/mongoose');
-//     res.send(await mongo_mongoose_Model.getAll());
-// });
-// app.post('/mongo/mongoose/:id', async (req, res) => {
-//     console.log('post /mongo/mongoose/:id');
-//     const id = req.params.id;
-//     res.send(await mongo_mongoose_Model.getOne(id));
-// });
-// app.put('/mongo/mongoose/insert', async (req, res) => {
-//     console.log('put /mongo/mongoose/insert');
-//     const row = req.body.row;
-//     console.log('mongo insert row', row);
-//     res.send(await mongo_mongoose_Model.insert(row));
-// });
-// app.put('/mongo/mongoose/:id', async (req, res) => {
-//     console.log('put /mongo/mongoose/:id');
-//     const id = req.params.id;
-//     const row = req.body.row;
-//     console.log('id', id);
-//     console.log('item', row);
-//     res.send(await mongo_mongoose_Model.update(id, row));
-// });
-// app.delete('/mongo/mongoose/:id', async (req, res) => {
-//     console.log('delete /mongo/mongoose/:id');
-//     const id = req.params.id;
-//     console.log('id', id);
-//     res.send(await mongo_mongoose_Model.remove(id));
-// });
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+const mongoURI = `mongodb://${keys.mongoUser}:${keys.mongoPassword}@${keys.mongoHost}:${keys.mongoPort}/${keys.mongoDatabase}`;
+mongoose.connect(mongoURI, {useNewUrlParser: true, authSource: 'admin'});
+const db = mongoose.connection;
+const mongoose_schema = {
+    _id: {
+        type: mongoose.Schema.Types.ObjectId
+    },
+    name: {
+        type: String
+    },
+    title: {
+        type: String
+    }
+};
+const modelSchema = mongoose.Schema(mongoose_schema, {versionKey: false});
+const Model = mongoose.model('Model', modelSchema, 'demotable');
+class mongo_mongoose_Model {
+    static async getAll() {
+        console.log('mongo_mongoose_Model.getAll');
+        const getAll = await Model.find({}).limit(100);
+        console.log('getAll', getAll);
+        return getAll;
+    }
+    static async getOne(id) {
+        console.log('mongo_mongoose_Model.getOne');
+        const getOne = await Model.findById(id);
+        console.log('getOne', getOne);
+        return getOne;
+    }
+    static async insert(row) {
+        const jsonToInsert = {};
+        Object.keys(mongoose_schema).forEach((element, key) => {
+            if (key === 0) {
+                jsonToInsert[element] = new mongoose.mongo.ObjectId();
+            } else {
+                jsonToInsert[element] = row[element] ? row[element] : null;
+            }
+        });
+        await Model.create(jsonToInsert);
+        return await this.getAll();
+    }
+    static async update(id, row) {
+        console.log('mongo_mongoose_Model.update');
+        console.log('row', row);
+        let rowWithoutId = {};
+        Object.keys(mongoose_schema).forEach((element) => {
+            if (element !== '_id') {
+                rowWithoutId[element] = row[element];
+            }
+        });
+        console.log('rowWithoutId', rowWithoutId);
+        await Model.findOneAndUpdate({_id: id}, {$set: rowWithoutId});
+        return await this.getAll();
+    }
+    static async remove(id) {
+        await Model.deleteOne({_id: id});
+        return await this.getAll();
+    }
+}
+app.get('/mongo/mongoose', async (req, res) => {
+    console.log('get /mongo/mongoose');
+    res.send(await mongo_mongoose_Model.getAll());
+});
+app.post('/mongo/mongoose/:id', async (req, res) => {
+    console.log('post /mongo/mongoose/:id');
+    const id = req.params.id;
+    res.send(await mongo_mongoose_Model.getOne(id));
+});
+app.put('/mongo/mongoose/insert', async (req, res) => {
+    console.log('put /mongo/mongoose/insert');
+    const row = req.body.row;
+    console.log('mongo insert row', row);
+    res.send(await mongo_mongoose_Model.insert(row));
+});
+app.put('/mongo/mongoose/:id', async (req, res) => {
+    console.log('put /mongo/mongoose/:id');
+    const id = req.params.id;
+    const row = req.body.row;
+    console.log('id', id);
+    console.log('item', row);
+    res.send(await mongo_mongoose_Model.update(id, row));
+});
+app.delete('/mongo/mongoose/:id', async (req, res) => {
+    console.log('delete /mongo/mongoose/:id');
+    const id = req.params.id;
+    console.log('id', id);
+    res.send(await mongo_mongoose_Model.remove(id));
+});
 // //------------------------------------------------------------------ mongo mongodb
-// const MongoClient = require('mongodb').MongoClient;
-// const ObjectId = require('mongodb').ObjectID;
-// const mongodb = (id, row, callback) => {
-//     MongoClient.connect(`mongodb://${keys.mongoUser}:${keys.mongoPassword}@${keys.mongoHost}:${keys.mongoPort}`, function (err, db) {
-//         if (err) throw err;
-//         const dbo = db.db(keys.mongoDatabase);
-//         callback(id, row, dbo);
-//     });
-//     db.close();
-// };
-// class mongo_mongodb_Model {
-//     static async getAll() {
-//         const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
-//             dbo.collection(table).find({}).toArray(function (err, result) {
-//                 if (err) throw err;
-//                 resolve(result);
-//             });
-//         }));
-//         console.log('getAll', getAll);
-//         return getAll;
-//     }
-//     static async getOne(id) {
-//         const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
-//             dbo.collection(table).findOne({_id: ObjectId(id)}, function (err, result) {
-//                 if (err) throw err;
-//                 resolve(result);
-//             });
-//         }));
-//         console.log('getAll', getAll);
-//         return getAll;
-//     }
-//     static async insert(row) {
-//         const jsonToInsert = {};
-//         Object.keys(mongoose_schema).forEach((element, key) => {
-//             if (key === 0) {
-//                 jsonToInsert[element] = new mongoose.mongo.ObjectId();
-//             } else {
-//                 jsonToInsert[element] = row[element] ? row[element] : null;
-//             }
-//         });
-//         await new Promise((resolve, reject) => mongodb (null, jsonToInsert, (id, row, dbo) => {
-//             dbo.collection(table).insertOne(row, function (err, res1) {
-//                 if (err) throw err;
-//                 resolve(res1);
-//             });
-//         }));
-//         return await this.getAll();
-//     }
-//     static async update(id, row) {
-//         console.log('mongo_mongoose_Model.update');
-//         console.log('id', id);
-//         console.log('row', row);
-//         let rowWithoutId = {};
-//         Object.keys(mongoose_schema).forEach((element) => {
-//             if (element !== '_id') {
-//                 rowWithoutId[element] = row[element];
-//             }
-//         });
-//         console.log('rowWithoutId', rowWithoutId);
-//         await new Promise((resolve, reject) => mongodb (id, rowWithoutId, (id, row, dbo) => {
-//             dbo.collection(table).updateOne({_id: ObjectId(id)}, {$set: row}, function (err, res1) {
-//                 if (err) throw err;
-//                 resolve(res1);
-//             });
-//         }));
-//         return await this.getAll();
-//     }
-//     static async remove(id) {
-//         console.log('mongo_mongodb_Model.remove');
-//         console.log('id', id);
-//         await new Promise((resolve, reject) => mongodb (id, null, (id, row, dbo) => {
-//             dbo.collection(table).deleteOne({_id: ObjectId(id)}, function (err, res1) {
-//                 if (err) throw err;
-//                 resolve(res1);
-//             });
-//         }));
-//         return await this.getAll();
-//     }
-// }
-// app.get('/mongo/mongodb', async (req, res) => {
-//     console.log('get /mongo/mongodb');
-//     res.send(await mongo_mongodb_Model.getAll());
-//
-// });
-// app.get('/mongo/mongodb/:id', async (req, res) => {
-//     console.log('get /mongo/mongodb/:id');
-//     const id = req.params.id;
-//     res.send(await mongo_mongodb_Model.getOne(id));
-// });
-// app.put('/mongo/mongodb/insert', async (req, res) => {
-//     console.log('put /mongo/mongodb/insert');
-//     const item = req.body.row;
-//     // console.log('mongo insert row', item);
-//     res.send(await mongo_mongodb_Model.insert(item));
-// });
-// app.put('/mongo/mongodb/:id', async (req, res) => {
-//     console.log('put /mongo/mongodb/:id');
-//     const id = req.params.id;
-//     const row = req.body.row;
-//     res.send(await mongo_mongodb_Model.update(id, row));
-// });
-// app.delete('/mongo/mongodb/:id', async (req, res) => {
-//     console.log('delete /mongo/mongodb/:id');
-//     const id = req.params.id;
-//     res.send(await mongo_mongodb_Model.remove(id));
-// });
+const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectID;
+const mongodb = (id, row, callback) => {
+    MongoClient.connect(`mongodb://${keys.mongoUser}:${keys.mongoPassword}@${keys.mongoHost}:${keys.mongoPort}`, function (err, db) {
+        if (err) throw err;
+        const dbo = db.db(keys.mongoDatabase);
+        callback(id, row, dbo);
+    });
+    db.close();
+};
+class mongo_mongodb_Model {
+    static async getAll() {
+        const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
+            dbo.collection(table).find({}).toArray(function (err, result) {
+                if (err) throw err;
+                resolve(result);
+            });
+        }));
+        console.log('getAll', getAll);
+        return getAll;
+    }
+    static async getOne(id) {
+        const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
+            dbo.collection(table).findOne({_id: ObjectId(id)}, function (err, result) {
+                if (err) throw err;
+                resolve(result);
+            });
+        }));
+        console.log('getAll', getAll);
+        return getAll;
+    }
+    static async insert(row) {
+        const jsonToInsert = {};
+        Object.keys(mongoose_schema).forEach((element, key) => {
+            if (key === 0) {
+                jsonToInsert[element] = new mongoose.mongo.ObjectId();
+            } else {
+                jsonToInsert[element] = row[element] ? row[element] : null;
+            }
+        });
+        await new Promise((resolve, reject) => mongodb (null, jsonToInsert, (id, row, dbo) => {
+            dbo.collection(table).insertOne(row, function (err, res1) {
+                if (err) throw err;
+                resolve(res1);
+            });
+        }));
+        return await this.getAll();
+    }
+    static async update(id, row) {
+        console.log('mongo_mongoose_Model.update');
+        console.log('id', id);
+        console.log('row', row);
+        let rowWithoutId = {};
+        Object.keys(mongoose_schema).forEach((element) => {
+            if (element !== '_id') {
+                rowWithoutId[element] = row[element];
+            }
+        });
+        console.log('rowWithoutId', rowWithoutId);
+        await new Promise((resolve, reject) => mongodb (id, rowWithoutId, (id, row, dbo) => {
+            dbo.collection(table).updateOne({_id: ObjectId(id)}, {$set: row}, function (err, res1) {
+                if (err) throw err;
+                resolve(res1);
+            });
+        }));
+        return await this.getAll();
+    }
+    static async remove(id) {
+        console.log('mongo_mongodb_Model.remove');
+        console.log('id', id);
+        await new Promise((resolve, reject) => mongodb (id, null, (id, row, dbo) => {
+            dbo.collection(table).deleteOne({_id: ObjectId(id)}, function (err, res1) {
+                if (err) throw err;
+                resolve(res1);
+            });
+        }));
+        return await this.getAll();
+    }
+}
+app.get('/mongo/mongodb', async (req, res) => {
+    console.log('get /mongo/mongodb');
+    res.send(await mongo_mongodb_Model.getAll());
+
+});
+app.get('/mongo/mongodb/:id', async (req, res) => {
+    console.log('get /mongo/mongodb/:id');
+    const id = req.params.id;
+    res.send(await mongo_mongodb_Model.getOne(id));
+});
+app.put('/mongo/mongodb/insert', async (req, res) => {
+    console.log('put /mongo/mongodb/insert');
+    const item = req.body.row;
+    // console.log('mongo insert row', item);
+    res.send(await mongo_mongodb_Model.insert(item));
+});
+app.put('/mongo/mongodb/:id', async (req, res) => {
+    console.log('put /mongo/mongodb/:id');
+    const id = req.params.id;
+    const row = req.body.row;
+    res.send(await mongo_mongodb_Model.update(id, row));
+});
+app.delete('/mongo/mongodb/:id', async (req, res) => {
+    console.log('delete /mongo/mongodb/:id');
+    const id = req.params.id;
+    res.send(await mongo_mongodb_Model.remove(id));
+});
 // //------------------------------------------------------------------ mysql mysql
-// const mysqlConnection = require('mysql');
-// const mysql = mysqlConnection.createConnection({
-//     host: keys.mysqlHost,
-//     port: keys.mysqlPort,
-//     database: keys.mysqlDatabase,
-//     user: keys.mysqlUser,
-//     password: keys.mysqlPassword
-// });
-// mysql.connect(function (err) {
-//     if (err) throw err;
-// });
-// class mysql_mysql_Model {
-//     static async getAll() {
-//         const getAll =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} ORDER BY id`, (err, result) => {
-//             if (err) throw err;
-//             resolve(result);
-//         }));
-//         const getAll1 = JSON.parse(JSON.stringify(getAll));
-//         console.log('getAll', getAll1);
-//         return getAll1;
-//     }
-//     static async getOne(id) {
-//         const getOne =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} WHERE id = ${id}`, (err, result) => {
-//             if (err) throw err;
-//             resolve(result[0]);
-//         }));
-//         const getOne1 = JSON.parse(JSON.stringify(getOne));
-//         console.log('getAll', getOne1);
-//         return getOne1;
-//     }
-//     static async insert(row) {
-//         const rowNamesArr = [];
-//         const rowValuesArr = [];
-//         Object.keys(row).forEach((element) => {
-//             if (element !== 'id') {
-//                 rowNamesArr.push(element);
-//                 rowValuesArr.push(row[element]);
-//             }
-//         });
-//         const rowNames = rowNamesArr.join(", ");
-//         const rowValues = "'" + rowValuesArr.join("', '") + "'";
-//         await new Promise((resolve, reject) => mysql.query(`INSERT INTO ${table} (${rowNames}) VALUES (${rowValues})`, (err, result) => {
-//             if (err) throw err;
-//             resolve(result);
-//         }));
-//         return await this.getAll();
-//     }
-//     static async update(id, row) {
-//         const rowArr = [];
-//         Object.keys(row).forEach((element) => {
-//             if (element !== 'id') {
-//                 rowArr.push(`${element} = '${row[element]}'`);
-//             }
-//         });
-//         await new Promise((resolve, reject) => mysql.query(`UPDATE ${table} SET ${rowArr.join(", ")} WHERE id = '${id}'`, (err, result) => {
-//             if (err) throw err;
-//             resolve(result);
-//         }));
-//         return await this.getAll();
-//     }
-//     static async remove(id) {
-//         await pgClient.query(`DELETE FROM ${table} WHERE id = '${id}'`)
-//             .catch(err => err);
-//         await new Promise((resolve, reject) => mysql.query(`DELETE FROM ${table} WHERE id = '${id}'`, (err, result) => {
-//             if (err) throw err;
-//             resolve(result);
-//         }));
-//         return await this.getAll();
-//     }
-// }
-// app.get('/mysql/mysql', async (req, res) => {
-//     console.log('get /mysql');
-//     res.send(await mysql_mysql_Model.getAll());
-// });
-// app.get('/mysql/mysql/:id', async (req, res) => {
-//     console.log('get /mysql/mysql/:id');
-//     const id = req.params.id;
-//     res.send(await mysql_mysql_Model.getOne(id));
-// });
-// app.put('/mysql/mysql/insert', async (req, res) => {
-//     console.log('put /mysql/insert');
-//     const row = req.body.row;
-//     res.send(await mysql_mysql_Model.insert(row));
-// });
-// app.put('/mysql/mysql/:id', async (req, res) => {
-//     console.log('put /mysql/:id');
-//     const id = req.params.id;
-//     const row = req.body.row;
-//     console.log('id', id);
-//     console.log('row', row);
-//     res.send(await mysql_mysql_Model.update(id, row));
-// });
-// app.delete('/mysql/mysql/:id', async (req, res) => {
-//     console.log('delete /mysql/:id');
-//     const id = req.params.id;
-//     res.send(await mysql_mysql_Model.remove(id));
-// });
+const mysqlConnection = require('mysql');
+const mysql = mysqlConnection.createConnection({
+    host: keys.mysqlHost,
+    port: keys.mysqlPort,
+    database: keys.mysqlDatabase,
+    user: keys.mysqlUser,
+    password: keys.mysqlPassword
+});
+mysql.connect(function (err) {
+    if (err) throw err;
+});
+class mysql_mysql_Model {
+    static async getAll() {
+        const getAll =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} ORDER BY id`, (err, result) => {
+            if (err) throw err;
+            resolve(result);
+        }));
+        const getAll1 = JSON.parse(JSON.stringify(getAll));
+        console.log('getAll', getAll1);
+        return getAll1;
+    }
+    static async getOne(id) {
+        const getOne =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} WHERE id = ${id}`, (err, result) => {
+            if (err) throw err;
+            resolve(result[0]);
+        }));
+        const getOne1 = JSON.parse(JSON.stringify(getOne));
+        console.log('getAll', getOne1);
+        return getOne1;
+    }
+    static async insert(row) {
+        const rowNamesArr = [];
+        const rowValuesArr = [];
+        Object.keys(row).forEach((element) => {
+            if (element !== 'id') {
+                rowNamesArr.push(element);
+                rowValuesArr.push(row[element]);
+            }
+        });
+        const rowNames = rowNamesArr.join(", ");
+        const rowValues = "'" + rowValuesArr.join("', '") + "'";
+        await new Promise((resolve, reject) => mysql.query(`INSERT INTO ${table} (${rowNames}) VALUES (${rowValues})`, (err, result) => {
+            if (err) throw err;
+            resolve(result);
+        }));
+        return await this.getAll();
+    }
+    static async update(id, row) {
+        const rowArr = [];
+        Object.keys(row).forEach((element) => {
+            if (element !== 'id') {
+                rowArr.push(`${element} = '${row[element]}'`);
+            }
+        });
+        await new Promise((resolve, reject) => mysql.query(`UPDATE ${table} SET ${rowArr.join(", ")} WHERE id = '${id}'`, (err, result) => {
+            if (err) throw err;
+            resolve(result);
+        }));
+        return await this.getAll();
+    }
+    static async remove(id) {
+        await pgClient.query(`DELETE FROM ${table} WHERE id = '${id}'`)
+            .catch(err => err);
+        await new Promise((resolve, reject) => mysql.query(`DELETE FROM ${table} WHERE id = '${id}'`, (err, result) => {
+            if (err) throw err;
+            resolve(result);
+        }));
+        return await this.getAll();
+    }
+}
+app.get('/mysql/mysql', async (req, res) => {
+    console.log('get /mysql');
+    res.send(await mysql_mysql_Model.getAll());
+});
+app.get('/mysql/mysql/:id', async (req, res) => {
+    console.log('get /mysql/mysql/:id');
+    const id = req.params.id;
+    res.send(await mysql_mysql_Model.getOne(id));
+});
+app.put('/mysql/mysql/insert', async (req, res) => {
+    console.log('put /mysql/insert');
+    const row = req.body.row;
+    res.send(await mysql_mysql_Model.insert(row));
+});
+app.put('/mysql/mysql/:id', async (req, res) => {
+    console.log('put /mysql/:id');
+    const id = req.params.id;
+    const row = req.body.row;
+    console.log('id', id);
+    console.log('row', row);
+    res.send(await mysql_mysql_Model.update(id, row));
+});
+app.delete('/mysql/mysql/:id', async (req, res) => {
+    console.log('delete /mysql/:id');
+    const id = req.params.id;
+    res.send(await mysql_mysql_Model.remove(id));
+});
 // //------------------------------------------------------------------ mysql knex
-// // const knex = require('knex');
-// const knexmysql = knex({
-//     client: 'mysql',
-//     version: '8.0',
-//     connection: {
-//         host: keys.mysqlHost,
-//         port: keys.mysqlPort,
-//         database: keys.mysqlDatabase,
-//         user: keys.mysqlUser,
-//         password: keys.mysqlPassword
-//     }
-// });
-// class mysql_knex_Model {
-//     static async getAll() {
-//         return await knexmysql.select('*').from(table)
-//             .then(data => data).catch(err => err);
-//     }
-//     static async getOne(id) {
-//         return await knexmysql.select('*').from(table).where('id', '=', id)
-//             .then(data => data[0]).catch(err => err);
-//     }
-//     static async insert(row) {
-//         await knexmysql.insert(row).into(table)
-//             .then(data => data).catch(err => err);
-//         return await this.getAll();
-//     }
-//     static async update(id, row) {
-//         await knexmysql.update(row).into(table).where('id', '=', id)
-//             .then(data => data).catch(err => err);
-//         return await this.getAll();
-//     }
-//     static async remove(id) {
-//         await knexmysql.del().from(table).where('id', '=', id)
-//             .then(data => data).catch(err => err);
-//         return await this.getAll();
-//     }
-// }
-// app.get('/mysql/knex', async (req, res) => {
-//     console.log('get /mysql/knex');
-//     res.send(await mysql_knex_Model.getAll());
-// });
-// app.get('/mysql/knex/:id', async (req, res) => {
-//     console.log('get /mysql/knex/:id');
-//     res.send(await mysql_knex_Model.getOne(id));
-// });
-// app.put('/mysql/knex/insert', async (req, res) => {
-//     console.log('put /mysql/knex/insert');
-//     const row = req.body.row;
-//     res.send(await mysql_knex_Model.insert(row));
-// });
-// app.put('/mysql/knex/:id', async (req, res) => {
-//     console.log('put /mysql/knex/:id');
-//     const id = req.params.id;
-//     const row = req.body.row;
-//     res.send(await mysql_knex_Model.update(id, row));
-// });
-// app.delete('/mysql/knex/:id', async (req, res) => {
-//     console.log('delete /mysql/knex/:id');
-//     const id = req.params.id;
-//     console.log('id', id);
-//     res.send(await mysql_knex_Model.remove(id));
-// });
+// const knex = require('knex');
+const knexmysql = knex({
+    client: 'mysql',
+    version: '8.0',
+    connection: {
+        host: keys.mysqlHost,
+        port: keys.mysqlPort,
+        database: keys.mysqlDatabase,
+        user: keys.mysqlUser,
+        password: keys.mysqlPassword
+    }
+});
+class mysql_knex_Model {
+    static async getAll() {
+        return await knexmysql.select('*').from(table)
+            .then(data => data).catch(err => err);
+    }
+    static async getOne(id) {
+        return await knexmysql.select('*').from(table).where('id', '=', id)
+            .then(data => data[0]).catch(err => err);
+    }
+    static async insert(row) {
+        await knexmysql.insert(row).into(table)
+            .then(data => data).catch(err => err);
+        return await this.getAll();
+    }
+    static async update(id, row) {
+        await knexmysql.update(row).into(table).where('id', '=', id)
+            .then(data => data).catch(err => err);
+        return await this.getAll();
+    }
+    static async remove(id) {
+        await knexmysql.del().from(table).where('id', '=', id)
+            .then(data => data).catch(err => err);
+        return await this.getAll();
+    }
+}
+app.get('/mysql/knex', async (req, res) => {
+    console.log('get /mysql/knex');
+    res.send(await mysql_knex_Model.getAll());
+});
+app.get('/mysql/knex/:id', async (req, res) => {
+    console.log('get /mysql/knex/:id');
+    res.send(await mysql_knex_Model.getOne(id));
+});
+app.put('/mysql/knex/insert', async (req, res) => {
+    console.log('put /mysql/knex/insert');
+    const row = req.body.row;
+    res.send(await mysql_knex_Model.insert(row));
+});
+app.put('/mysql/knex/:id', async (req, res) => {
+    console.log('put /mysql/knex/:id');
+    const id = req.params.id;
+    const row = req.body.row;
+    res.send(await mysql_knex_Model.update(id, row));
+});
+app.delete('/mysql/knex/:id', async (req, res) => {
+    console.log('delete /mysql/knex/:id');
+    const id = req.params.id;
+    console.log('id', id);
+    res.send(await mysql_knex_Model.remove(id));
+});
 //------------------------------------------------------------------ graphql
 const expressGraphQL = require('express-graphql');
 // const models = require('./models');
