@@ -11,7 +11,8 @@ const table = 'demotable';
 app.get('/', (req, res) => {
     res.send('Hi');
 });
-//------------------------------------------------------------------ Redis Client Setup
+//------------------------------------------------------------------ redis redis
+//------------------------------- setup
 const redis = require('redis');
 const redisClient = redis.createClient({
     host: keys.redisHost,
@@ -20,6 +21,7 @@ const redisClient = redis.createClient({
 });
 const redisPublisher = redisClient.duplicate();
 const uniqid = require('uniqid');
+//------------------------------- routes
 app.get('/redis/redis', (req, res) => {
     console.log('get /redis/redis');
     redisClient.hgetall('demotable', (err, values) => {
@@ -54,22 +56,15 @@ app.put('/redis/redis/:id', (req, res) => {
 });
 app.put('/redis/redis/insert', (req, res) => {
     console.log('put /redis/redis/insert');
-    // console.log('req.body.row', req.body.row);
-    // const index = req.body.row;
     redisClient.hset('demotable', uniqid(), req.body.row.name);
-    // redisPublisher.publish('insert', 'bbbbbbbbbbb');
     redisClient.hgetall('demotable', (err, values) => {
-        // console.log('redis values', values);
         const tableArr = [];
         Object.keys(values).forEach((element) => {
-            // if (element !== 'id') {
             const elem = {};
             elem._id = element;
             elem['name'] = values[element];
             tableArr.push(elem);
-            // }
         });
-
         res.send(tableArr);
     });
 });
@@ -97,6 +92,7 @@ app.get('/redis/redis/columns', (req, res) => {
     res.send(['(no name)']);
 });
 //------------------------------------------------------------------ postgres pg
+//------------------------------- setup
 const {Pool} = require('pg');
 const pgClient = new Pool({
     host: keys.pgHost,
@@ -106,6 +102,7 @@ const pgClient = new Pool({
     password: keys.pgPassword
 });
 pgClient.on('error', () => console.log('Lost PG connection'));
+//------------------------------- crud model
 class postgres_pg_Model {
     static async getAll() {
         return await pgClient.query(`SELECT * FROM ${table} ORDER BY id`)
@@ -149,6 +146,7 @@ class postgres_pg_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/postgres/pg', async (req, res) => {
     console.log('get /postgres/pg');
     res.send(await postgres_pg_Model.getAll());
@@ -176,6 +174,7 @@ app.delete('/postgres/pg/:id', async (req, res) => {
     res.send(await postgres_pg_Model.remove(id));
 });
 //------------------------------------------------------------------ postgres pg-promise
+//------------------------------- setup
 const initOptions = {
     error(error, e) {
         if (e.cn) {
@@ -193,6 +192,7 @@ const databaseConfig = {
     password: keys.pgPassword
 };
 const pgpr = pgp(databaseConfig);
+//------------------------------- crud model
 class postgres_pgpromise_Model {
     static async getAll() {
         return await pgpr.any(`SELECT * FROM ${table} ORDER BY id`)
@@ -234,6 +234,7 @@ class postgres_pgpromise_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/postgres/pgpromise', async (req, res) => {
     console.log('get /postgres/pgpromise');
     res.send(await postgres_pgpromise_Model.getAll());
@@ -261,6 +262,7 @@ app.delete('/postgres/pgpromise/:id', async (req, res) => {
     res.send(await postgres_pgpromise_Model.remove(id));
 });
 //------------------------------------------------------------------ postgres knex
+//------------------------------- setup
 const knex = require('knex');
 const knexpg = knex({
     client: 'pg',
@@ -272,6 +274,7 @@ const knexpg = knex({
         password: keys.pgPassword
     }
 });
+//------------------------------- crud model
 class postgres_knex_Model {
     static async getAll() {
         return await knexpg.select('*').from(table)
@@ -297,6 +300,7 @@ class postgres_knex_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/postgres/knex', async (req, res) => {
     console.log('get /postgres/knex');
     res.send(await postgres_knex_Model.getAll());
@@ -322,6 +326,7 @@ app.delete('/postgres/knex/:id', async (req, res) => {
     res.send(await postgres_knex_Model.remove(id));
 });
 // //------------------------------------------------------------------ mongo mongoose
+//------------------------------- setup
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const mongoURI = `mongodb://${keys.mongoUser}:${keys.mongoPassword}@${keys.mongoHost}:${keys.mongoPort}/${keys.mongoDatabase}`;
@@ -340,6 +345,7 @@ const mongoose_schema = {
 };
 const modelSchema = mongoose.Schema(mongoose_schema, {versionKey: false});
 const Model = mongoose.model('Model', modelSchema, 'demotable');
+//------------------------------- crud model
 class mongo_mongoose_Model {
     static async getAll() {
         console.log('mongo_mongoose_Model.getAll');
@@ -383,6 +389,7 @@ class mongo_mongoose_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/mongo/mongoose', async (req, res) => {
     console.log('get /mongo/mongoose');
     res.send(await mongo_mongoose_Model.getAll());
@@ -413,6 +420,7 @@ app.delete('/mongo/mongoose/:id', async (req, res) => {
     res.send(await mongo_mongoose_Model.remove(id));
 });
 // //------------------------------------------------------------------ mongo mongodb
+//------------------------------- setup
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
 const mongodb = (id, row, callback) => {
@@ -423,6 +431,7 @@ const mongodb = (id, row, callback) => {
     });
     db.close();
 };
+//------------------------------- crud model
 class mongo_mongodb_Model {
     static async getAll() {
         const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
@@ -492,6 +501,7 @@ class mongo_mongodb_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/mongo/mongodb', async (req, res) => {
     console.log('get /mongo/mongodb');
     res.send(await mongo_mongodb_Model.getAll());
@@ -505,7 +515,6 @@ app.get('/mongo/mongodb/:id', async (req, res) => {
 app.put('/mongo/mongodb/insert', async (req, res) => {
     console.log('put /mongo/mongodb/insert');
     const item = req.body.row;
-    // console.log('mongo insert row', item);
     res.send(await mongo_mongodb_Model.insert(item));
 });
 app.put('/mongo/mongodb/:id', async (req, res) => {
@@ -520,6 +529,7 @@ app.delete('/mongo/mongodb/:id', async (req, res) => {
     res.send(await mongo_mongodb_Model.remove(id));
 });
 // //------------------------------------------------------------------ mysql mysql
+//------------------------------- setup
 const mysqlConnection = require('mysql');
 const mysql = mysqlConnection.createConnection({
     host: keys.mysqlHost,
@@ -531,6 +541,7 @@ const mysql = mysqlConnection.createConnection({
 mysql.connect(function (err) {
     if (err) throw err;
 });
+//------------------------------- crud model
 class mysql_mysql_Model {
     static async getAll() {
         const getAll =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} ORDER BY id`, (err, result) => {
@@ -590,6 +601,7 @@ class mysql_mysql_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/mysql/mysql', async (req, res) => {
     console.log('get /mysql');
     res.send(await mysql_mysql_Model.getAll());
@@ -617,7 +629,8 @@ app.delete('/mysql/mysql/:id', async (req, res) => {
     const id = req.params.id;
     res.send(await mysql_mysql_Model.remove(id));
 });
-// //------------------------------------------------------------------ mysql knex
+//------------------------------------------------------------------ mysql knex
+//------------------------------- setup
 // const knex = require('knex');
 const knexmysql = knex({
     client: 'mysql',
@@ -630,6 +643,7 @@ const knexmysql = knex({
         password: keys.mysqlPassword
     }
 });
+//------------------------------- crud model
 class mysql_knex_Model {
     static async getAll() {
         return await knexmysql.select('*').from(table)
@@ -655,6 +669,7 @@ class mysql_knex_Model {
         return await this.getAll();
     }
 }
+//------------------------------- routes
 app.get('/mysql/knex', async (req, res) => {
     console.log('get /mysql/knex');
     res.send(await mysql_knex_Model.getAll());
@@ -681,6 +696,7 @@ app.delete('/mysql/knex/:id', async (req, res) => {
     res.send(await mysql_knex_Model.remove(id));
 });
 //------------------------------------------------------------------ graphql
+//------------------------------- setup
 const expressGraphQL = require('express-graphql');
 // const models = require('./models');
 // const graphql_schema = require('./schema/schema');
