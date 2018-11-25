@@ -325,7 +325,7 @@ app.delete('/postgres/knex/:id', async (req, res) => {
     const id = req.params.id;
     res.send(await postgres_knex_Model.remove(id));
 });
-// //------------------------------------------------------------------ mongo mongoose
+//------------------------------------------------------------------ mongo mongoose
 //------------------------------- setup
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -419,7 +419,7 @@ app.delete('/mongo/mongoose/:id', async (req, res) => {
     console.log('id', id);
     res.send(await mongo_mongoose_Model.remove(id));
 });
-// //------------------------------------------------------------------ mongo mongodb
+//------------------------------------------------------------------ mongo mongodb
 //------------------------------- setup
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectID;
@@ -528,7 +528,7 @@ app.delete('/mongo/mongodb/:id', async (req, res) => {
     const id = req.params.id;
     res.send(await mongo_mongodb_Model.remove(id));
 });
-// //------------------------------------------------------------------ mysql mysql
+//------------------------------------------------------------------ mysql mysql
 //------------------------------- setup
 const mysqlConnection = require('mysql');
 const mysql = mysqlConnection.createConnection({
