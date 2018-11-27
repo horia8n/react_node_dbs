@@ -9,8 +9,14 @@ app.use(bodyParser.json());
 
 ////////////////////////////////////////////////////////////////////////////////////// Databases
 const table = 'demotable';
+function resSend(res){
+    if(res.err){
+        res.status(422).send({error: res.err});
+    }
+    res.status(200).send(res);
+}
 app.get('/', (req, res) => {
-    res.send('Hi');
+    resSend('Hi');
 });
 
 //------------------------------------------------------------------ redis redis
@@ -23,75 +29,86 @@ const redisClient = redis.createClient({
 });
 const redisPublisher = redisClient.duplicate();
 const uniqid = require('uniqid');
+
+//------------------------------- crud model
+class redis_redis_Model {
+    static async getAll() {
+        return await redisClient.hgetall(table, async (err, values) => {
+            if(err){
+                return {err: err};
+            }
+            const tableArr = [];
+            if (values) {
+                await Object.keys(values).forEach((element) => {
+                    const elem = {};
+                    elem._id = element;
+                    elem['name'] = values[element];
+                    tableArr.push(elem);
+                });
+                return await tableArr;
+            } else {
+                return [];
+            }
+        });
+    }
+
+    static async getOne(id) {
+        return await redisClient.hget(table, id, async (err, value) => {
+            if(err){
+                return {err: err};
+            }
+            return await value;
+        });
+    }
+
+    static async insert(id, row) {
+        return await redisClient.hset('values', id, row, async (err, value) => {
+            if(err){
+                return {err: err};
+            }
+            return await value;
+        });
+    }
+
+    static async update(id, row) {
+        return await redisClient.hset('values', id, row, async (err, value) => {
+            if(err){
+                return {err: err};
+            }
+            return await value;
+        });
+    }
+
+    static async remove(id) {
+        return await redisClient.del('values', id, row, async (err, value) => {
+            if(err){
+                return {err: err};
+            }
+            return await value;
+        });
+    }
+}
+
 //------------------------------- routes
-app.get('/redis/redis', (req, res) => {
+app.get('/redis/redis', async (req, res) => {
     console.log('get /redis/redis');
-    redisClient.hgetall('demotable', (err, values) => {
-        const tableArr = [];
-        if (values) {
-            Object.keys(values).forEach((element) => {
-                const elem = {};
-                elem._id = element;
-                elem['name'] = values[element];
-                tableArr.push(elem);
-            });
-            res.send(tableArr);
-        } else {
-            res.send([]);
-        }
-    });
+    resSend(await redis_redis_Model.getAll());
 });
-app.put('/redis/redis/:id', (req, res) => {
+app.get('/redis/redis/:id', async (req, res) => {
     console.log('put /redis/redis/:id', values);
     const id = req.params.id;
-    redisClient.hset('demotable', id, req.body.row.name);
-    redisClient.hgetall('demotable', (err, values) => {
-        const tableArr = [];
-        Object.keys(values).forEach((element) => {
-            const elem = {};
-            elem._id = element;
-            elem['name'] = values[element];
-            tableArr.push(elem);
-        });
-        res.send(tableArr);
-    });
+    resSend(await redis_redis_Model.getOne(id));
 });
-app.put('/redis/redis/insert', (req, res) => {
+app.put('/redis/redis/:id', async (req, res) => {
+    const id = req.params.id;
+    const row = req.body.row;
     console.log('put /redis/redis/insert');
-    redisClient.hset('demotable', uniqid(), req.body.row.name);
-    redisClient.hgetall('demotable', (err, values) => {
-        const tableArr = [];
-        Object.keys(values).forEach((element) => {
-            const elem = {};
-            elem._id = element;
-            elem['name'] = values[element];
-            tableArr.push(elem);
-        });
-        res.send(tableArr);
-    });
+    resSend(await redis_redis_Model.update(id, row));
 });
-app.delete('/redis/redis/:id', (req, res) => {
+app.delete('/redis/redis/:id', async (req, res) => {
     console.log('delete /redis/redis/insert');
     const id = req.params.id;
-    redisClient.hdel('demotable', id);
-    redisClient.hgetall('demotable', (err, values) => {
-        console.log('redis values', values);
-        const tableArr = [];
-        Object.keys(values).forEach((element) => {
-            // if (element !== 'id') {
-            const elem = {};
-            elem._id = element;
-            elem['name'] = values[element];
-            tableArr.push(elem);
-            // }
-        });
-
-        res.send(tableArr);
-    });
-});
-app.get('/redis/redis/columns', (req, res) => {
-    console.log('get /redis/redis/columns');
-    res.send(['(no name)']);
+    resSend(await redis_redis_Model.getOne(id));
 });
 
 //------------------------------------------------------------------ postgres pg
@@ -105,18 +122,21 @@ const pgClient = new Pool({
     password: keys.pgPassword
 });
 pgClient.on('error', () => console.log('Lost PG connection'));
+
 //------------------------------- crud model
 class postgres_pg_Model {
     static async getAll() {
         return await pgClient.query(`SELECT * FROM ${table} ORDER BY id`)
             .then(result => result.rows)
-            .catch(err => err);
+            .catch(err => {err: err});
     }
+
     static async getOne(id) {
         return await pgClient.query(`SELECT * FROM ${table} WHERE id = '${id}'`)
             .then(result => result.rows[0])
-            .catch(err => err);
+            .catch(err => {err: err});
     }
+
     static async insert(row) {
         const rowNamesArr = [];
         const rowValuesArr = [];
@@ -129,9 +149,10 @@ class postgres_pg_Model {
         const rowNames = rowNamesArr.join(", ");
         const rowValues = "'" + rowValuesArr.join("', '") + "'";
         await pgClient.query(`INSERT INTO ${table} (${rowNames}) VALUES (${rowValues})`)
-            .catch(err => err);
+            .catch(err => {err: err});
         return await this.getAll();
     }
+
     static async update(id, row) {
         const rowArr = [];
         Object.keys(row).forEach((element) => {
@@ -140,41 +161,43 @@ class postgres_pg_Model {
             }
         });
         await pgClient.query(`UPDATE ${table} SET ${rowArr.join(", ")} WHERE id = '${id}'`)
-            .catch(err => err);
+            .catch(err => {err: err});
         return await this.getAll();
     }
+
     static async remove(id) {
         await pgClient.query(`DELETE FROM ${table} WHERE id = '${id}'`)
-            .catch(err => err);
+            .catch(err => {err: err});
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/postgres/pg', async (req, res) => {
     console.log('get /postgres/pg');
-    res.send(await postgres_pg_Model.getAll());
+    resSend(await postgres_pg_Model.getAll());
 });
 app.get('/postgres/pg/:id', async (req, res) => {
     console.log('post /postgres/pg/:id');
     const id = req.params.id;
-    res.send(await postgres_pg_Model.getOne(id));
+    resSend(await postgres_pg_Model.getOne(id));
 });
-app.put('/postgres/pg/insert', async (req, res) => {
+app.post('/postgres/pg/insert', async (req, res) => {
     console.log('put /postgres/pg/insert');
     const row = req.body.row;
-    res.send(await postgres_pg_Model.insert(row));
+    resSend(await postgres_pg_Model.insert(row));
 });
 app.put('/postgres/pg/:id', async (req, res) => {
     console.log('put /postgres/pg/:id');
     const id = req.params.id;
     const row = req.body.row;
-    res.send(await postgres_pg_Model.update(id, row));
+    resSend(await postgres_pg_Model.update(id, row));
 });
 app.delete('/postgres/pg/:id', async (req, res) => {
     console.log('delete /postgres/pg/:id');
     const id = req.params.id;
     console.log('id', id);
-    res.send(await postgres_pg_Model.remove(id));
+    resSend(await postgres_pg_Model.remove(id));
 });
 
 //------------------------------------------------------------------ postgres pg-promise
@@ -196,16 +219,19 @@ const databaseConfig = {
     password: keys.pgPassword
 };
 const pgpr = pgp(databaseConfig);
+
 //------------------------------- crud model
 class postgres_pgpromise_Model {
     static async getAll() {
         return await pgpr.any(`SELECT * FROM ${table} ORDER BY id`)
-            .then(data => data, reason => reason);
+            .then(data => data, reason => {err: reason});
     }
+
     static async getOne(id) {
         return await pgpr.any(`SELECT * FROM ${table} WHERE id = ${id}`)
-            .then(data => data[0], reason => reason);
+            .then(data => data[0], reason => {err: reason});
     }
+
     static async insert(row) {
         const rowNamesArr = [];
         const rowValuesArr = [];
@@ -218,9 +244,10 @@ class postgres_pgpromise_Model {
         const rowNames = rowNamesArr.join(", ");
         const rowValues = "'" + rowValuesArr.join("', '") + "'";
         await pgpr.none(`INSERT INTO ${table} (${rowNames}) VALUES (${rowValues})`)
-            .then(data => data, reason => reason);
+            .then(data => data, reason => {err: reason});
         return await this.getAll();
     }
+
     static async update(id, row) {
         const rowArr = [];
         Object.keys(row).forEach((element) => {
@@ -229,41 +256,43 @@ class postgres_pgpromise_Model {
             }
         });
         await pgpr.none(`UPDATE ${table} SET ${rowArr.join(", ")} WHERE id = '${id}'`)
-            .then(data => data, reason => reason);
+            .then(data => data, reason => {err: reason});
         return await this.getAll();
     }
+
     static async remove(id) {
         await pgpr.none(`DELETE FROM ${table} WHERE id = '${id}'`)
-            .then(data => data, reason => reason);
+            .then(data => data, reason => {err: reason});
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/postgres/pgpromise', async (req, res) => {
     console.log('get /postgres/pgpromise');
-    res.send(await postgres_pgpromise_Model.getAll());
+    resSend(await postgres_pgpromise_Model.getAll());
 });
 app.get('/postgres/pgpromise/:id', async (req, res) => {
     console.log('post /postgres/pgpromise/:id');
     const id = req.params.id;
-    res.send(await postgres_pgpromise_Model.getOne(id));
+    resSend(await postgres_pgpromise_Model.getOne(id));
 });
-app.put('/postgres/pgpromise/insert', async (req, res) => {
+app.post('/postgres/pgpromise/insert', async (req, res) => {
     console.log('put /postgres/pgpromise/insert');
     const row = req.body.row;
-    res.send(await postgres_pgpromise_Model.insert(row));
+    resSend(await postgres_pgpromise_Model.insert(row));
 });
 app.put('/postgres/pgpromise/:id', async (req, res) => {
     console.log('put /postgres/pgpromise/:id');
     const id = req.params.id;
     const row = req.body.row;
-    res.send(await postgres_pgpromise_Model.update(row));
+    resSend(await postgres_pgpromise_Model.update(row));
 });
 app.delete('/postgres/pgpromise/:id', async (req, res) => {
     console.log('delete /postgres/pgpromise/:id');
     const id = req.params.id;
     console.log('id', id);
-    res.send(await postgres_pgpromise_Model.remove(id));
+    resSend(await postgres_pgpromise_Model.remove(id));
 });
 
 //------------------------------------------------------------------ postgres knex
@@ -279,56 +308,62 @@ const knexpg = knex({
         password: keys.pgPassword
     }
 });
+
 //------------------------------- crud model
 class postgres_knex_Model {
     static async getAll() {
         return await knexpg.select('*').from(table)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
     }
+
     static async getOne(id) {
         return await knexpg.select('*').from(table).where('id', '=', id)
-            .then(data => data[0]).catch(err => err);
+            .then(data => data[0]).catch(err => {err: err});
     }
+
     static async insert(row) {
         await knexpg.insert(row).into(table)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
         return await this.getAll();
     }
+
     static async update(id, row) {
         await knexpg.update(row).into(table).where('id', '=', id)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
         return await this.getAll();
     }
+
     static async remove(id) {
         knexpg.del().from(table).where('id', '=', id)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/postgres/knex', async (req, res) => {
     console.log('get /postgres/knex');
-    res.send(await postgres_knex_Model.getAll());
+    resSend(await postgres_knex_Model.getAll());
 });
 app.get('/postgres/knex/:id', async (req, res) => {
     console.log('get /postgres/knex/:id');
-    res.send(await postgres_knex_Model.getOne(id));
+    resSend(await postgres_knex_Model.getOne(id));
 });
-app.put('/postgres/knex/insert', async (req, res) => {
+app.post('/postgres/knex/insert', async (req, res) => {
     console.log('put /postgres/knex/insert');
     const row = req.body.row;
-    res.send(await postgres_knex_Model.insert(row));
+    resSend(await postgres_knex_Model.insert(row));
 });
 app.put('/postgres/knex/:id', async (req, res) => {
     console.log('put /postgres/knex/:id');
     const id = req.params.id;
     const row = req.body.row;
-    res.send(await postgres_knex_Model.update(id, row));
+    resSend(await postgres_knex_Model.update(id, row));
 });
 app.delete('/postgres/knex/:id', async (req, res) => {
     console.log('delete /postgres/knex/:id');
     const id = req.params.id;
-    res.send(await postgres_knex_Model.remove(id));
+    resSend(await postgres_knex_Model.remove(id));
 });
 
 //------------------------------------------------------------------ mongo mongoose
@@ -350,7 +385,8 @@ const mongoose_schema = {
     }
 };
 const modelSchema = mongoose.Schema(mongoose_schema, {versionKey: false});
-const Model = mongoose.model('Model', modelSchema, 'demotable');
+const Model = mongoose.model('Model', modelSchema, table);
+
 //------------------------------- crud model
 class mongo_mongoose_Model {
     static async getAll() {
@@ -359,12 +395,14 @@ class mongo_mongoose_Model {
         console.log('getAll', getAll);
         return getAll;
     }
+
     static async getOne(id) {
         console.log('mongo_mongoose_Model.getOne');
         const getOne = await Model.findById(id);
         console.log('getOne', getOne);
         return getOne;
     }
+
     static async insert(row) {
         const jsonToInsert = {};
         Object.keys(mongoose_schema).forEach((element, key) => {
@@ -377,6 +415,7 @@ class mongo_mongoose_Model {
         await Model.create(jsonToInsert);
         return await this.getAll();
     }
+
     static async update(id, row) {
         console.log('mongo_mongoose_Model.update');
         console.log('row', row);
@@ -390,26 +429,28 @@ class mongo_mongoose_Model {
         await Model.findOneAndUpdate({_id: id}, {$set: rowWithoutId});
         return await this.getAll();
     }
+
     static async remove(id) {
         await Model.deleteOne({_id: id});
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/mongo/mongoose', async (req, res) => {
     console.log('get /mongo/mongoose');
-    res.send(await mongo_mongoose_Model.getAll());
+    resSend(await mongo_mongoose_Model.getAll());
 });
-app.post('/mongo/mongoose/:id', async (req, res) => {
+app.get('/mongo/mongoose/:id', async (req, res) => {
     console.log('post /mongo/mongoose/:id');
     const id = req.params.id;
-    res.send(await mongo_mongoose_Model.getOne(id));
+    resSend(await mongo_mongoose_Model.getOne(id));
 });
-app.put('/mongo/mongoose/insert', async (req, res) => {
+app.post('/mongo/mongoose/insert', async (req, res) => {
     console.log('put /mongo/mongoose/insert');
     const row = req.body.row;
     console.log('mongo insert row', row);
-    res.send(await mongo_mongoose_Model.insert(row));
+    resSend(await mongo_mongoose_Model.insert(row));
 });
 app.put('/mongo/mongoose/:id', async (req, res) => {
     console.log('put /mongo/mongoose/:id');
@@ -417,13 +458,13 @@ app.put('/mongo/mongoose/:id', async (req, res) => {
     const row = req.body.row;
     console.log('id', id);
     console.log('item', row);
-    res.send(await mongo_mongoose_Model.update(id, row));
+    resSend(await mongo_mongoose_Model.update(id, row));
 });
 app.delete('/mongo/mongoose/:id', async (req, res) => {
     console.log('delete /mongo/mongoose/:id');
     const id = req.params.id;
     console.log('id', id);
-    res.send(await mongo_mongoose_Model.remove(id));
+    resSend(await mongo_mongoose_Model.remove(id));
 });
 
 //------------------------------------------------------------------ mongo mongodb
@@ -438,10 +479,11 @@ const mongodb = (id, row, callback) => {
     });
     db.close();
 };
+
 //------------------------------- crud model
 class mongo_mongodb_Model {
     static async getAll() {
-        const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
+        const getAll = await new Promise((resolve, reject) => mongodb(null, null, (id, row, dbo) => {
             dbo.collection(table).find({}).toArray(function (err, result) {
                 if (err) throw err;
                 resolve(result);
@@ -450,8 +492,9 @@ class mongo_mongodb_Model {
         console.log('getAll', getAll);
         return getAll;
     }
+
     static async getOne(id) {
-        const getAll = await new Promise((resolve, reject) => mongodb (null, null, (id, row, dbo) => {
+        const getAll = await new Promise((resolve, reject) => mongodb(null, null, (id, row, dbo) => {
             dbo.collection(table).findOne({_id: ObjectId(id)}, function (err, result) {
                 if (err) throw err;
                 resolve(result);
@@ -460,6 +503,7 @@ class mongo_mongodb_Model {
         console.log('getAll', getAll);
         return getAll;
     }
+
     static async insert(row) {
         const jsonToInsert = {};
         Object.keys(mongoose_schema).forEach((element, key) => {
@@ -469,7 +513,7 @@ class mongo_mongodb_Model {
                 jsonToInsert[element] = row[element] ? row[element] : null;
             }
         });
-        await new Promise((resolve, reject) => mongodb (null, jsonToInsert, (id, row, dbo) => {
+        await new Promise((resolve, reject) => mongodb(null, jsonToInsert, (id, row, dbo) => {
             dbo.collection(table).insertOne(row, function (err, res1) {
                 if (err) throw err;
                 resolve(res1);
@@ -477,6 +521,7 @@ class mongo_mongodb_Model {
         }));
         return await this.getAll();
     }
+
     static async update(id, row) {
         console.log('mongo_mongoose_Model.update');
         console.log('id', id);
@@ -488,7 +533,7 @@ class mongo_mongodb_Model {
             }
         });
         console.log('rowWithoutId', rowWithoutId);
-        await new Promise((resolve, reject) => mongodb (id, rowWithoutId, (id, row, dbo) => {
+        await new Promise((resolve, reject) => mongodb(id, rowWithoutId, (id, row, dbo) => {
             dbo.collection(table).updateOne({_id: ObjectId(id)}, {$set: row}, function (err, res1) {
                 if (err) throw err;
                 resolve(res1);
@@ -496,10 +541,11 @@ class mongo_mongodb_Model {
         }));
         return await this.getAll();
     }
+
     static async remove(id) {
         console.log('mongo_mongodb_Model.remove');
         console.log('id', id);
-        await new Promise((resolve, reject) => mongodb (id, null, (id, row, dbo) => {
+        await new Promise((resolve, reject) => mongodb(id, null, (id, row, dbo) => {
             dbo.collection(table).deleteOne({_id: ObjectId(id)}, function (err, res1) {
                 if (err) throw err;
                 resolve(res1);
@@ -508,32 +554,32 @@ class mongo_mongodb_Model {
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/mongo/mongodb', async (req, res) => {
     console.log('get /mongo/mongodb');
-    res.send(await mongo_mongodb_Model.getAll());
-
+    resSend(await mongo_mongodb_Model.getAll());
 });
 app.get('/mongo/mongodb/:id', async (req, res) => {
     console.log('get /mongo/mongodb/:id');
     const id = req.params.id;
-    res.send(await mongo_mongodb_Model.getOne(id));
+    resSend(await mongo_mongodb_Model.getOne(id));
 });
-app.put('/mongo/mongodb/insert', async (req, res) => {
+app.post('/mongo/mongodb/insert', async (req, res) => {
     console.log('put /mongo/mongodb/insert');
     const item = req.body.row;
-    res.send(await mongo_mongodb_Model.insert(item));
+    resSend(await mongo_mongodb_Model.insert(item));
 });
 app.put('/mongo/mongodb/:id', async (req, res) => {
     console.log('put /mongo/mongodb/:id');
     const id = req.params.id;
     const row = req.body.row;
-    res.send(await mongo_mongodb_Model.update(id, row));
+    resSend(await mongo_mongodb_Model.update(id, row));
 });
 app.delete('/mongo/mongodb/:id', async (req, res) => {
     console.log('delete /mongo/mongodb/:id');
     const id = req.params.id;
-    res.send(await mongo_mongodb_Model.remove(id));
+    resSend(await mongo_mongodb_Model.remove(id));
 });
 
 //------------------------------------------------------------------ mysql mysql
@@ -549,10 +595,11 @@ const mysql = mysqlConnection.createConnection({
 mysql.connect(function (err) {
     if (err) throw err;
 });
+
 //------------------------------- crud model
 class mysql_mysql_Model {
     static async getAll() {
-        const getAll =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} ORDER BY id`, (err, result) => {
+        const getAll = await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} ORDER BY id`, (err, result) => {
             if (err) throw err;
             resolve(result);
         }));
@@ -560,8 +607,9 @@ class mysql_mysql_Model {
         console.log('getAll', getAll1);
         return getAll1;
     }
+
     static async getOne(id) {
-        const getOne =  await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} WHERE id = ${id}`, (err, result) => {
+        const getOne = await new Promise((resolve, reject) => mysql.query(`SELECT * FROM ${table} WHERE id = ${id}`, (err, result) => {
             if (err) throw err;
             resolve(result[0]);
         }));
@@ -569,6 +617,7 @@ class mysql_mysql_Model {
         console.log('getAll', getOne1);
         return getOne1;
     }
+
     static async insert(row) {
         const rowNamesArr = [];
         const rowValuesArr = [];
@@ -586,6 +635,7 @@ class mysql_mysql_Model {
         }));
         return await this.getAll();
     }
+
     static async update(id, row) {
         const rowArr = [];
         Object.keys(row).forEach((element) => {
@@ -599,9 +649,10 @@ class mysql_mysql_Model {
         }));
         return await this.getAll();
     }
+
     static async remove(id) {
         await pgClient.query(`DELETE FROM ${table} WHERE id = '${id}'`)
-            .catch(err => err);
+            .catch(err => {err: err});
         await new Promise((resolve, reject) => mysql.query(`DELETE FROM ${table} WHERE id = '${id}'`, (err, result) => {
             if (err) throw err;
             resolve(result);
@@ -609,20 +660,21 @@ class mysql_mysql_Model {
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/mysql/mysql', async (req, res) => {
     console.log('get /mysql');
-    res.send(await mysql_mysql_Model.getAll());
+    resSend(await mysql_mysql_Model.getAll());
 });
 app.get('/mysql/mysql/:id', async (req, res) => {
     console.log('get /mysql/mysql/:id');
     const id = req.params.id;
-    res.send(await mysql_mysql_Model.getOne(id));
+    resSend(await mysql_mysql_Model.getOne(id));
 });
-app.put('/mysql/mysql/insert', async (req, res) => {
+app.post('/mysql/mysql/insert', async (req, res) => {
     console.log('put /mysql/insert');
     const row = req.body.row;
-    res.send(await mysql_mysql_Model.insert(row));
+    resSend(await mysql_mysql_Model.insert(row));
 });
 app.put('/mysql/mysql/:id', async (req, res) => {
     console.log('put /mysql/:id');
@@ -630,12 +682,12 @@ app.put('/mysql/mysql/:id', async (req, res) => {
     const row = req.body.row;
     console.log('id', id);
     console.log('row', row);
-    res.send(await mysql_mysql_Model.update(id, row));
+    resSend(await mysql_mysql_Model.update(id, row));
 });
 app.delete('/mysql/mysql/:id', async (req, res) => {
     console.log('delete /mysql/:id');
     const id = req.params.id;
-    res.send(await mysql_mysql_Model.remove(id));
+    resSend(await mysql_mysql_Model.remove(id));
 });
 
 //------------------------------------------------------------------ mysql knex
@@ -652,57 +704,63 @@ const knexmysql = knex({
         password: keys.mysqlPassword
     }
 });
+
 //------------------------------- crud model
 class mysql_knex_Model {
     static async getAll() {
         return await knexmysql.select('*').from(table)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
     }
+
     static async getOne(id) {
         return await knexmysql.select('*').from(table).where('id', '=', id)
-            .then(data => data[0]).catch(err => err);
+            .then(data => data[0]).catch(err => {err: err});
     }
+
     static async insert(row) {
         await knexmysql.insert(row).into(table)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
         return await this.getAll();
     }
+
     static async update(id, row) {
         await knexmysql.update(row).into(table).where('id', '=', id)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
         return await this.getAll();
     }
+
     static async remove(id) {
         await knexmysql.del().from(table).where('id', '=', id)
-            .then(data => data).catch(err => err);
+            .then(data => data).catch(err => {err: err});
         return await this.getAll();
     }
 }
+
 //------------------------------- routes
 app.get('/mysql/knex', async (req, res) => {
     console.log('get /mysql/knex');
-    res.send(await mysql_knex_Model.getAll());
+    resSend(await mysql_knex_Model.getAll());
 });
 app.get('/mysql/knex/:id', async (req, res) => {
     console.log('get /mysql/knex/:id');
-    res.send(await mysql_knex_Model.getOne(id));
+    resSend(await mysql_knex_Model.getOne(id));
 });
-app.put('/mysql/knex/insert', async (req, res) => {
+app.post('/mysql/knex/insert', async (req, res) => {
     console.log('put /mysql/knex/insert');
     const row = req.body.row;
-    res.send(await mysql_knex_Model.insert(row));
+    resSend(await mysql_knex_Model.insert(row));
 });
 app.put('/mysql/knex/:id', async (req, res) => {
     console.log('put /mysql/knex/:id');
     const id = req.params.id;
     const row = req.body.row;
-    res.send(await mysql_knex_Model.update(id, row));
+    resSend(await mysql_knex_Model.update(id, row));
 });
 app.delete('/mysql/knex/:id', async (req, res) => {
     console.log('delete /mysql/knex/:id');
     const id = req.params.id;
     console.log('id', id);
-    res.send(await mysql_knex_Model.remove(id));
+    resSend(await mysql_knex_Model.remove(id));
 });
 
 //------------------------------------------------------------------ graphql
